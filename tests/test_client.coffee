@@ -217,6 +217,19 @@ describe 'instance of LindaClient', ->
           assert.equal server.linda.tuplespace('read').callbacks.length, 1
           done()
 
+      it 'should return matched Tuple if used option(sort: "queue")', (done) ->
+        reader = create_client()
+        writer = create_client()
+        msg = "hello world #{new Date}"
+        count = 4
+        for i in [1..count]
+          writer.tuplespace('read_queue').write {type: 'chat', num: i}
+        reader.tuplespace('read_queue').option({sort: 'queue'})
+        .read {type: 'chat'}, (err, tuple) ->
+          assert.equal tuple.data.num, 1
+          assert.equal server.linda.tuplespace('read_queue').size, count
+          done()
+
 
       it 'should wait if Tuple not found', (done) ->
         reader = create_client()
@@ -282,6 +295,23 @@ describe 'instance of LindaClient', ->
           assert.equal server.linda.tuplespace('take').size, 0
           assert.equal server.linda.tuplespace('take').callbacks.length, 1
           done()
+
+      it 'should return matched Tuple if used option(sort: "queue")', (done) ->
+        taker = create_client()
+        writer = create_client()
+        msg = "hello world #{new Date}"
+        count = 4
+        for i in [1..count]
+          writer.tuplespace('take_queue').write {type: 'chat', num: i}
+        taker.tuplespace('take_queue').option({sort: 'queue'})
+        .take {type: 'chat'}, (err, tuple) ->
+          assert.equal tuple.data.num, 1
+          assert.equal server.linda.tuplespace('take_queue').size, count-1
+          taker.tuplespace('take_queue').option({sort: 'queue'})
+          .take {type: 'chat'}, (err, tuple) ->
+            assert.equal tuple.data.num, 2
+            assert.equal server.linda.tuplespace('take_queue').size, count-2
+            done()
 
 
       it 'should wait if Tuple not found', (done) ->
