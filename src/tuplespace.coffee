@@ -35,13 +35,18 @@ module.exports = class TupleSpace
   create_callback_id: ->
     return Date.now() - Math.random()
 
-  read: (tuple, callback) ->
+  read: (tuple, option, callback) ->
+    if typeof option is 'function'
+      callback = option
+      option = {}
+    return unless option?
     return unless typeof callback is 'function'
     if !Tuple.isHash(tuple) and !(tuple instanceof Tuple)
       setImmediate -> callback('argument_error')
       return null
     tuple = new Tuple(tuple) unless tuple instanceof Tuple
-    for i in [@size-1..0]
+    seq = if option.sort is 'queue' then [0..@size-1] else [@size-1..0]
+    for i in seq
       t = @tuples[i]
       if tuple.match t
         setImmediate -> callback(null, t)
@@ -50,13 +55,18 @@ module.exports = class TupleSpace
     @callbacks.push {type: 'read', callback: callback, tuple: tuple, id: id}
     return id
 
-  take: (tuple, callback) ->
+  take: (tuple, option, callback) ->
+    if typeof option is 'function'
+      callback = option
+      option = {}
+    return unless option?
     return unless typeof callback is 'function'
     if !Tuple.isHash(tuple) and !(tuple instanceof Tuple)
       setImmediate -> callback('argument_error')
       return null
     tuple = new Tuple(tuple) unless tuple instanceof Tuple
-    for i in [@size-1..0]
+    seq = if option.sort is 'queue' then [0..@size-1] else [@size-1..0]
+    for i in seq
       t = @tuples[i]
       if tuple.match t
         setImmediate -> callback(null, t)
