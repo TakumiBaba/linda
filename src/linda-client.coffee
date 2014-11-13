@@ -12,11 +12,26 @@ class TupleSpace
   constructor: (@linda, @name) ->
     @watch_callback_ids = {}
     @io_callbacks = []
+    @default_option = {}
     @linda.io.on 'disconnect', =>
       @remove_io_callbacks()
 
   create_callback_id: ->
     return Date.now() - Math.random()
+
+  option: (opt) ->
+    return {
+      write: (tuple, option) =>
+        for k,v of option
+          opt[k] = v
+        return @write tuple, opt
+      read: (tuple, callback) =>
+        return @_read tuple, opt, callback
+      take: (tuple, callback) =>
+        return @_take tuple, opt, callback
+      watch: (tuple, callback) =>
+        return @_watch tuple, opt, callback
+    }
 
   create_watch_callback_id: (tuple) ->
     key = JSON.stringify tuple
@@ -34,35 +49,45 @@ class TupleSpace
 
   take: (tuple, callback) ->
     return if typeof callback isnt 'function'
+    return @option({}).take tuple, callback
+
+  _take: (tuple, option, callback) ->
     id = @create_callback_id()
     name = "__linda_take_#{id}"
     listener = (err, tuple) ->
       callback err, tuple
     @io_callbacks.push {name: name, listener: listener}
     @linda.io.once name, listener
-    @linda.io.emit '__linda_take', {tuplespace: @name, tuple: tuple, id: id}
+    @linda.io.emit '__linda_take', {tuplespace: @name, tuple: tuple, id: id, option: option}
     return id
 
   read: (tuple, callback) ->
     return if typeof callback isnt 'function'
+    return @option({}).read tuple, callback
+
+  _read: (tuple, option, callback) ->
     id = @create_callback_id()
     name = "__linda_read_#{id}"
     listener = (err, tuple) ->
       callback err, tuple
     @io_callbacks.push {name: name, listener: listener}
     @linda.io.once name, listener
-    @linda.io.emit '__linda_read', {tuplespace: @name, tuple: tuple, id: id}
+    @linda.io.emit '__linda_read', {tuplespace: @name, tuple: tuple, id: id, option: option}
     return id
+
 
   watch: (tuple, callback) ->
     return if typeof callback isnt 'function'
+    return @option({}).watch tuple, callback
+
+  _watch: (tuple, option, callback) ->
     id = @create_watch_callback_id tuple
     name = "__linda_watch_#{id}"
     listener = (err, tuple) ->
       callback err, tuple
     @io_callbacks.push {name: name, listener: listener}
     @linda.io.on name, listener
-    @linda.io.emit '__linda_watch', {tuplespace: @name, tuple: tuple, id: id}
+    @linda.io.emit '__linda_watch', {tuplespace: @name, tuple: tuple, id: id, option: option}
     return id
 
   cancel: (id) ->
