@@ -228,7 +228,10 @@ describe 'instance of LindaClient', ->
         .read {type: 'chat'}, (err, tuple) ->
           assert.equal tuple.data.num, 1
           assert.equal server.linda.tuplespace('read_queue').size, count
-          done()
+          reader.tuplespace('read_queue').read {type: 'chat'}, (err, tuple) ->
+            assert.equal tuple.data.num, 4
+            assert.equal server.linda.tuplespace('read_queue').size, count
+            done()
 
 
       it 'should wait if Tuple not found', (done) ->
@@ -307,9 +310,8 @@ describe 'instance of LindaClient', ->
         .take {type: 'chat'}, (err, tuple) ->
           assert.equal tuple.data.num, 1
           assert.equal server.linda.tuplespace('take_queue').size, count-1
-          taker.tuplespace('take_queue').option({sort: 'queue'})
-          .take {type: 'chat'}, (err, tuple) ->
-            assert.equal tuple.data.num, 2
+          taker.tuplespace('take_queue').take {type: 'chat'}, (err, tuple) ->
+            assert.equal tuple.data.num, 4
             assert.equal server.linda.tuplespace('take_queue').size, count-2
             done()
 
