@@ -76,7 +76,7 @@ class ReadTakeOption
       callback err, tuple
     @ts.io_callbacks.push {name: name, listener: listener}
     @ts.linda.io.once name, listener
-    @ts.linda.io.emit '__linda_read', {tuplespace: @ts.name, tuple: tuple, id: id, option: @opts}
+    @ts.linda.io.emit '__linda_read', {tuplespace: @ts.name, tuple: tuple, id: id, options: @opts}
     return id
 
   take: (tuple, callback) ->
@@ -87,7 +87,7 @@ class ReadTakeOption
       callback err, tuple
     @ts.io_callbacks.push {name: name, listener: listener}
     @ts.linda.io.once name, listener
-    @ts.linda.io.emit '__linda_take', {tuplespace: @ts.name, tuple: tuple, id: id, option: @opts}
+    @ts.linda.io.emit '__linda_take', {tuplespace: @ts.name, tuple: tuple, id: id, options: @opts}
     return id
 
 if window?
