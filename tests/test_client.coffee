@@ -217,7 +217,7 @@ describe 'instance of LindaClient', ->
           assert.equal server.linda.tuplespace('read').callbacks.length, 1
           done()
 
-      it 'should return matched Tuple if used option(sort: "queue")', (done) ->
+      it 'should return matched Tuple if using queue/stack mode', (done) ->
         reader = create_client()
         writer = create_client()
         msg = "hello world #{new Date}"
@@ -299,7 +299,7 @@ describe 'instance of LindaClient', ->
           assert.equal server.linda.tuplespace('take').callbacks.length, 1
           done()
 
-      it 'should return matched Tuple if used option(sort: "queue")', (done) ->
+      it 'should return matched Tuple if using queue/stack mode', (done) ->
         taker = create_client()
         writer = create_client()
         msg = "hello world #{new Date}"
