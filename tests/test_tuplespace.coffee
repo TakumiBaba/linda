@@ -104,6 +104,18 @@ describe 'instance of "TupleSpace"', ->
       assert.equal ts.callbacks.length, 0
       assert.equal ts.size, 3
 
+    it 'should return matched Tuple if using queue/stack mode', (done) ->
+      ts = new TupleSpace()
+      for i in [0..2]
+        ts.write {sort: 'queue', b:i}
+      ts.option({sort: 'queue'}).read {sort: 'queue'}, (err, tuple) ->
+        assert.deepEqual tuple.data, {sort: 'queue', b: 0}
+        assert.equal ts.size, 3
+        ts.read {sort: 'queue'}, (err, tuple) ->
+          assert.deepEqual tuple.data, {sort: 'queue', b: 2}
+          assert.equal ts.size, 3
+          done()
+
     it 'should not return Tuple if canceled', (done) ->
       ts = new TupleSpace
       cid = null
@@ -140,6 +152,18 @@ describe 'instance of "TupleSpace"', ->
         assert.deepEqual tuple.data, {a:1, b:2, c:3}
         assert.equal ts.size, 0
         done()
+
+    it 'should return matched Tuple and delete if using queue/stack mode', (done) ->
+      ts = new TupleSpace()
+      for i in [0..2]
+        ts.write {sort: 'queue', b:i}
+      ts.option({sort: 'queue'}).take {sort: 'queue'}, (err, tuple) ->
+        assert.deepEqual tuple.data, {sort: 'queue', b: 0}
+        assert.equal ts.size, 2
+        ts.take {sort: 'queue'}, (err, tuple) ->
+          assert.deepEqual tuple.data, {sort: 'queue', b: 2}
+          assert.equal ts.size, 1
+          done()
 
     it 'should wait if Tuple not found', (done) ->
       ts = new TupleSpace
